@@ -69,6 +69,7 @@ def main():
     model_cfg = cfg["model"]
     train_cfg = cfg["train"]
     data_cfg = cfg["dataset"]
+    device_cfg = cfg["device"]
 
     logger.info(f"Train config: {train_cfg}")
     logger.info(f"Dataset config: {data_cfg}")
@@ -77,7 +78,7 @@ def main():
     # -------------------------------------------------
     # Device (infra decides)
     # -------------------------------------------------
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = device_cfg.get("device", "cuda")
     logger.info(f"Using device: {device}")
 
     # -------------------------------------------------
