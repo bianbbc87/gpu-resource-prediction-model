@@ -11,8 +11,8 @@ train:
   loss: mse
 
 dataset:
-  graph_dir: data/graphs
-  label_dir: data/labels
+  graph_dir: gs://k8s-idp-storage/data/graphs
+  label_dir: gs://k8s-idp-storage/data/labels
 
 device:
   device: cuda
