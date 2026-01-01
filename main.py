@@ -33,21 +33,8 @@ from model.seernet import SeerNet
 def parse_args():
     parser = argparse.ArgumentParser("PerfSeer Research Entry Point")
 
-    # paths
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--output_dir", type=str, required=True)
-
-    # experiment control
-    parser.add_argument("--seed", type=int, default=42)
-
-    # overrides (Argo parameters)
-    parser.add_argument("--lr", type=float)
-    parser.add_argument("--epochs", type=int)
-    parser.add_argument("--batch_size", type=int)
-
-    # data path override (PVC 대응)
-    parser.add_argument("--graph_dir", type=str)
-    parser.add_argument("--label_dir", type=str)
 
     return parser.parse_args()
 
