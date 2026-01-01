@@ -1,0 +1,7 @@
+# hidden dim, layers
+# SeerNet 구조 정의
+node_dim: 64
+edge_dim: 5
+global_dim: 19
+hidden_dim: 256
+global_node_dim: 256

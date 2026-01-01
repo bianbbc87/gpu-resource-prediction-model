@@ -1,0 +1,7 @@
+# lr, batch size
+# 학습 정책 정의
+epochs: 30
+lr: 1e-4
+loss: mse
+optimizer: adam
+seeds: [0, 1, 2, 3, 4]

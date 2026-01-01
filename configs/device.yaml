@@ -1,0 +1,4 @@
+# GPU info
+# 서버 / GPU 환경 설정
+device: cuda
+num_workers: 0

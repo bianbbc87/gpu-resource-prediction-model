@@ -1,0 +1,5 @@
+# train/val/test split
+# 데이터 분리 정의
+graph_dir: data/graphs
+label_dir: data/labels
+split: train
