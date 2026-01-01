@@ -18,4 +18,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# train.sh 등록
+COPY scripts/train.sh /workspace/train.sh
+RUN chmod +x /workspace/train.sh
+
 ENV PYTHONPATH=/workspace
+
+# 핵심: 실행 엔트리는 train.sh
+ENTRYPOINT ["/workspace/train.sh"]

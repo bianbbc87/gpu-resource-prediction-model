@@ -1,12 +1,23 @@
 #!/bin/bash
+set -e
 
-EXP=perfseer_a100
-CONFIG=configs/exp_a100.yaml
-SEEDS=(0 1 2 3 4)
+# 기본값 (Argo에서 env로 override 가능)
+CONFIG_PATH=${CONFIG_PATH}
+DATA_DIR=${DATA_DIR}
+OUTPUT_DIR=${OUTPUT_DIR}
 
-for SEED in "${SEEDS[@]}"; do
-  python main.py \
-    --config $CONFIG \
-    --seed $SEED \
-    --output_dir outputs/$EXP/seed_$SEED
-done
+echo "===================================="
+echo "Starting training"
+echo "CONFIG_PATH = $CONFIG_PATH"
+echo "DATA_DIR    = $DATA_DIR"
+echo "OUTPUT_DIR  = $OUTPUT_DIR"
+echo "ARGS        = $@"
+echo "===================================="
+
+mkdir -p "$OUTPUT_DIR"
+
+python train.py \
+  --config "$CONFIG_PATH" \
+  --data_dir "$DATA_DIR" \
+  --output_dir "$OUTPUT_DIR" \
+  "$@"

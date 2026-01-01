@@ -33,17 +33,53 @@ from model.seernet import SeerNet
 def parse_args():
     parser = argparse.ArgumentParser("PerfSeer Research Entry Point")
 
+    # paths
+    parser.add_argument("--config", type=str, required=True)
+    parser.add_argument("--output_dir", type=str, required=True)
+
     # experiment control
-    parser.add_argument("--config", type=str, required=True,
-                        help="path to experiment yaml")
-    parser.add_argument("--seed", type=int, required=True,
-                        help="random seed")
-    parser.add_argument("--output_dir", type=str, required=True,
-                        help="directory to save results")
+    parser.add_argument("--seed", type=int, default=42)
+
+    # overrides (Argo parameters)
+    parser.add_argument("--lr", type=float)
+    parser.add_argument("--epochs", type=int)
+    parser.add_argument("--batch_size", type=int)
+
+    # data path override (PVC 대응)
+    parser.add_argument("--graph_dir", type=str)
+    parser.add_argument("--label_dir", type=str)
 
     return parser.parse_args()
 
 
+# -------------------------------------------------
+# Argument parsing
+# -------------------------------------------------
+def parse_args():
+    parser = argparse.ArgumentParser("PerfSeer Research Entry Point")
+
+    # required paths
+    parser.add_argument("--config", type=str, required=True)
+    parser.add_argument("--output_dir", type=str, required=True)
+
+    # experiment control
+    parser.add_argument("--seed", type=int, default=42)
+
+    # runtime overrides (Argo-friendly)
+    parser.add_argument("--lr", type=float)
+    parser.add_argument("--epochs", type=int)
+    parser.add_argument("--batch_size", type=int)
+
+    # dataset path override (PVC 대응)
+    parser.add_argument("--graph_dir", type=str)
+    parser.add_argument("--label_dir", type=str)
+
+    return parser.parse_args()
+
+
+# -------------------------------------------------
+# Main
+# -------------------------------------------------
 def main():
     args = parse_args()
 
@@ -55,12 +91,26 @@ def main():
     model_cfg = cfg["model"]
     train_cfg = cfg["train"]
     data_cfg = cfg["dataset"]
-    device_cfg = cfg.get("device", {})
 
-    device = device_cfg.get(
-        "device",
-        "cuda" if torch.cuda.is_available() else "cpu",
-    )
+    # -------------------------------------------------
+    # Override config by args (runtime control)
+    # -------------------------------------------------
+    if args.lr is not None:
+        train_cfg["lr"] = args.lr
+    if args.epochs is not None:
+        train_cfg["epochs"] = args.epochs
+    if args.batch_size is not None:
+        train_cfg["batch_size"] = args.batch_size
+
+    if args.graph_dir is not None:
+        data_cfg["graph_dir"] = args.graph_dir
+    if args.label_dir is not None:
+        data_cfg["label_dir"] = args.label_dir
+
+    # -------------------------------------------------
+    # Device (infra decides, not config)
+    # -------------------------------------------------
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # -------------------------------------------------
     # Setup
@@ -71,6 +121,8 @@ def main():
     logger.info(f"Using device: {device}")
     logger.info(f"Seed: {args.seed}")
     logger.info(f"Output dir: {args.output_dir}")
+    logger.info(f"Train config: {train_cfg}")
+    logger.info(f"Dataset config: {data_cfg}")
 
     set_seed(args.seed)
 
@@ -84,7 +136,7 @@ def main():
 
     dataloader = build_dataloader(
         dataset,
-        batch_size=1,      # graph-level prediction
+        batch_size=train_cfg.get("batch_size", 1),  # graph-level default
         shuffle=True,
     )
 
@@ -137,7 +189,6 @@ def main():
             epoch_loss += loss
 
         avg_loss = epoch_loss / len(dataloader)
-
         metrics = evaluator.evaluate(dataloader)
 
         logger.info(
