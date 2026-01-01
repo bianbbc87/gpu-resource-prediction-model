@@ -53,33 +53,40 @@ def main():
     args = parse_args()
 
     # -------------------------------------------------
+    # Logger (EARLY)
+    # -------------------------------------------------
+    logger = build_logger("PerfSeer")
+    logger.info("ENTER main()")
+    logger.info(f"Args: config={args.config}, output_dir={args.output_dir}")
+    
+    # -------------------------------------------------
     # Load config (local or gs://)
     # -------------------------------------------------
+    logger.info("Before load_config()")
     cfg = load_config(args.config)
+    logger.info("After load_config()")
 
     model_cfg = cfg["model"]
     train_cfg = cfg["train"]
     data_cfg = cfg["dataset"]
 
+    logger.info(f"Train config: {train_cfg}")
+    logger.info(f"Dataset config: {data_cfg}")
+    logger.info(f"Model config: {model_cfg}")
+
     # -------------------------------------------------
     # Device (infra decides)
     # -------------------------------------------------
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    logger.info(f"Using device: {device}")
 
     # -------------------------------------------------
     # Output directory (MUST be local path)
     # -------------------------------------------------
     output_dir = args.output_dir
+    logger.info(f"Before os.makedirs({output_dir})")
     os.makedirs(output_dir, exist_ok=True)
-
-    # -------------------------------------------------
-    # Logger / Seed
-    # -------------------------------------------------
-    logger = build_logger("PerfSeer")
-    logger.info(f"Using device: {device}")
-    logger.info(f"Output dir: {output_dir}")
-    logger.info(f"Train config: {train_cfg}")
-    logger.info(f"Dataset config: {data_cfg}")
+    logger.info("After os.makedirs()")
 
     seed = train_cfg.get("seed", 42)
     set_seed(seed)
@@ -87,10 +94,14 @@ def main():
     # -------------------------------------------------
     # Dataset / Dataloader
     # -------------------------------------------------
+    logger.info("Before Dataset init")
+
     dataset = PerfGraphDataset(
         graph_dir=data_cfg["graph_dir"],
         label_dir=data_cfg["label_dir"],
     )
+
+    logger.info("After Dataset init")
 
     dataloader = build_dataloader(
         dataset,
