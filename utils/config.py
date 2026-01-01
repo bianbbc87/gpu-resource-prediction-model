@@ -1,25 +1,53 @@
 import yaml
+import logging
 from google.cloud import storage
+from google.auth.exceptions import DefaultCredentialsError
+from google.api_core.exceptions import Forbidden, PermissionDenied
 
 def load_config(path: str):
-    """
-    Load YAML config from local path or GCS (gs://).
-    """
+    logging.info(f">>> load_config called with path: {path}")
+
     if path.startswith("gs://"):
-        # gs://bucket/path/to/file.yaml
         bucket_name, blob_path = path[5:].split("/", 1)
 
-        client = storage.Client()
-        bucket = client.bucket(bucket_name)
-        blob = bucket.blob(blob_path)
+        try:
+            logging.info(">>> Creating GCS client")
+            client = storage.Client()
 
-        if not blob.exists():
-            raise FileNotFoundError(f"GCS config not found: {path}")
+            logging.info(f">>> Accessing bucket: {bucket_name}")
+            bucket = client.bucket(bucket_name)
 
-        content = blob.download_as_text()
-        return yaml.safe_load(content)
+            logging.info(f">>> Accessing blob: {blob_path}")
+            blob = bucket.blob(blob_path)
+
+            logging.info(">>> Checking blob exists()")
+            exists = blob.exists()
+
+            if not exists:
+                raise FileNotFoundError(f"GCS config not found: {path}")
+
+            logging.info(">>> Downloading config")
+            content = blob.download_as_text()
+
+            logging.info(">>> Config downloaded successfully")
+            return yaml.safe_load(content)
+
+        except DefaultCredentialsError as e:
+            logging.error("GCS AUTH ERROR: Default credentials not found")
+            logging.exception(e)
+            raise
+
+        except (Forbidden, PermissionDenied) as e:
+            logging.error("GCS AUTH ERROR: Permission denied")
+            logging.exception(e)
+            raise
+
+        except Exception as e:
+            logging.error("UNEXPECTED ERROR while loading config from GCS")
+            logging.exception(e)
+            raise
 
     else:
-        # local file
+        logging.info(">>> Loading local config file")
         with open(path, "r") as f:
             return yaml.safe_load(f)
