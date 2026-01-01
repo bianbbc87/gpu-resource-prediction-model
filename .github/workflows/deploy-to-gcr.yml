@@ -9,7 +9,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: asia-northeast3
-  REPOSITORY: k8s-multi-container-system
+  REPOSITORY: k8s-idp-registry
   IMAGE: prediction-model   # ← 명확히 지정
 
 jobs:
