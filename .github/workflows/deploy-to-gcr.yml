@@ -27,6 +27,11 @@ jobs:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
         export_default_credentials: true
 
+    - name: Debug gcloud auth
+      run: |
+        gcloud auth list
+        gcloud config list account
+
     # access token 직접 Docker에 주입
     - name: Docker login to Artifact Registry (access token)
       run: |
