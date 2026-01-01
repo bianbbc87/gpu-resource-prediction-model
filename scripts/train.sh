@@ -1,23 +1,36 @@
 #!/bin/bash
 set -e
 
-# 기본값 (Argo에서 env로 override 가능)
-CONFIG_PATH=${CONFIG_PATH}
-DATA_DIR=${DATA_DIR}
-OUTPUT_DIR=${OUTPUT_DIR}
+# ===== env from Argo =====
+CONFIG_PATH="${CONFIG_PATH}"
+OUTPUT_DIR="${OUTPUT_DIR}"
+GRAPH_DIR="${GRAPH_DIR}"
+LABEL_DIR="${LABEL_DIR}"
 
 echo "===================================="
 echo "Starting training"
 echo "CONFIG_PATH = $CONFIG_PATH"
-echo "DATA_DIR    = $DATA_DIR"
 echo "OUTPUT_DIR  = $OUTPUT_DIR"
-echo "ARGS        = $@"
+echo "GRAPH_DIR   = $GRAPH_DIR"
+echo "LABEL_DIR   = $LABEL_DIR"
+echo "EXTRA ARGS  = $@"
 echo "===================================="
 
 mkdir -p "$OUTPUT_DIR"
 
-python train.py \
-  --config "$CONFIG_PATH" \
-  --data_dir "$DATA_DIR" \
-  --output_dir "$OUTPUT_DIR" \
-  "$@"
+# ===== build arg list =====
+ARGS=(
+  --config "$CONFIG_PATH"
+  --output_dir "$OUTPUT_DIR"
+)
+
+if [ -n "$GRAPH_DIR" ]; then
+  ARGS+=(--graph_dir "$GRAPH_DIR")
+fi
+
+if [ -n "$LABEL_DIR" ]; then
+  ARGS+=(--label_dir "$LABEL_DIR")
+fi
+
+# ===== execute =====
+python3 main.py "${ARGS[@]}" "$@"
