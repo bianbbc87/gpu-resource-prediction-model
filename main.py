@@ -112,6 +112,7 @@ def main():
     # -------------------------------------------------
     # Model
     # -------------------------------------------------
+    logger.info("===== Start Modeling =====")
     model = SeerNet(
         node_dim=model_cfg["node_dim"],
         edge_dim=model_cfg["edge_dim"],
@@ -120,18 +121,27 @@ def main():
         global_node_dim=model_cfg.get("global_node_dim", 256),
         output_dim=1,  # execution time
     )
-
+    
+    logger.info("===== Model Created =====")
+    
     model.to(device)
+    
+    logger.info("===== Model Moved to Device =====")
 
     # -------------------------------------------------
     # Optimizer / Loss
     # -------------------------------------------------
+    logger.info("===== Setup Optimizer / Loss =====")
     optimizer = optim.Adam(
         model.parameters(),
         lr=train_cfg.get("lr", 1e-4),
     )
-
+    
+    logger.info("===== Optimizer Created =====")
+    
     loss_fn = build_loss(train_cfg.get("loss", "mse"))
+    
+    logger.info("===== Loss Function Created =====")
 
     trainer = Trainer(
         model=model,
@@ -139,11 +149,15 @@ def main():
         loss_fn=loss_fn,
         device=device,
     )
+    
+    logger.info("===== Trainer Ready =====")
 
     evaluator = Evaluator(
         model=model,
         device=device,
     )
+    
+    logger.info("===== Evaluator Ready =====")
 
     # -------------------------------------------------
     # Training Loop
@@ -154,6 +168,7 @@ def main():
 
     for epoch in range(1, epochs + 1):
         epoch_loss = 0.0
+        logger.info(f"--- Epoch {epoch:03d} ---")
 
         for perfgraph, label in dataloader:
             loss = trainer.train_step(perfgraph, label)
@@ -180,6 +195,8 @@ def main():
         "final_rmspe": metrics["RMSPE"],
         "config": cfg,
     }
+    
+    logger.info("===== Saving Results =====")
 
     with open(os.path.join(output_dir, "metrics.json"), "w") as f:
         json.dump(result, f, indent=2)
