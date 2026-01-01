@@ -8,6 +8,10 @@
 
 ## 4. train / eval 분기
 
+# =====================================
+# PerfSeer Research Entry Point
+# =====================================
+
 import argparse
 import os
 import json
@@ -27,39 +31,17 @@ from train import (
 )
 
 from model.seernet import SeerNet
-# from model.seernet import SeerNetMulti  # multi-metric 실험 시 사용
-
-
-def parse_args():
-    parser = argparse.ArgumentParser("PerfSeer Research Entry Point")
-
-    parser.add_argument("--config", type=str, required=True)
-    parser.add_argument("--output_dir", type=str, required=True)
-
-    return parser.parse_args()
 
 
 # -------------------------------------------------
-# Argument parsing
+# Argument parsing (minimal, stable)
 # -------------------------------------------------
 def parse_args():
     parser = argparse.ArgumentParser("PerfSeer Research Entry Point")
 
-    # required paths
+    # required
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--output_dir", type=str, required=True)
-
-    # experiment control
-    parser.add_argument("--seed", type=int, default=42)
-
-    # runtime overrides (Argo-friendly)
-    parser.add_argument("--lr", type=float)
-    parser.add_argument("--epochs", type=int)
-    parser.add_argument("--batch_size", type=int)
-
-    # dataset path override (PVC 대응)
-    parser.add_argument("--graph_dir", type=str)
-    parser.add_argument("--label_dir", type=str)
 
     return parser.parse_args()
 
@@ -71,7 +53,7 @@ def main():
     args = parse_args()
 
     # -------------------------------------------------
-    # Load config
+    # Load config (local or gs://)
     # -------------------------------------------------
     cfg = load_config(args.config)
 
@@ -80,38 +62,27 @@ def main():
     data_cfg = cfg["dataset"]
 
     # -------------------------------------------------
-    # Override config by args (runtime control)
-    # -------------------------------------------------
-    if args.lr is not None:
-        train_cfg["lr"] = args.lr
-    if args.epochs is not None:
-        train_cfg["epochs"] = args.epochs
-    if args.batch_size is not None:
-        train_cfg["batch_size"] = args.batch_size
-
-    if args.graph_dir is not None:
-        data_cfg["graph_dir"] = args.graph_dir
-    if args.label_dir is not None:
-        data_cfg["label_dir"] = args.label_dir
-
-    # -------------------------------------------------
-    # Device (infra decides, not config)
+    # Device (infra decides)
     # -------------------------------------------------
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # -------------------------------------------------
-    # Setup
+    # Output directory (MUST be local path)
     # -------------------------------------------------
-    os.makedirs(args.output_dir, exist_ok=True)
+    output_dir = args.output_dir
+    os.makedirs(output_dir, exist_ok=True)
 
+    # -------------------------------------------------
+    # Logger / Seed
+    # -------------------------------------------------
     logger = build_logger("PerfSeer")
     logger.info(f"Using device: {device}")
-    logger.info(f"Seed: {args.seed}")
-    logger.info(f"Output dir: {args.output_dir}")
+    logger.info(f"Output dir: {output_dir}")
     logger.info(f"Train config: {train_cfg}")
     logger.info(f"Dataset config: {data_cfg}")
 
-    set_seed(args.seed)
+    seed = train_cfg.get("seed", 42)
+    set_seed(seed)
 
     # -------------------------------------------------
     # Dataset / Dataloader
@@ -123,7 +94,7 @@ def main():
 
     dataloader = build_dataloader(
         dataset,
-        batch_size=train_cfg.get("batch_size", 1),  # graph-level default
+        batch_size=train_cfg.get("batch_size", 1),
         shuffle=True,
     )
 
@@ -168,7 +139,9 @@ def main():
     # -------------------------------------------------
     logger.info("===== Start Training =====")
 
-    for epoch in range(1, train_cfg["epochs"] + 1):
+    epochs = train_cfg["epochs"]
+
+    for epoch in range(1, epochs + 1):
         epoch_loss = 0.0
 
         for perfgraph, label in dataloader:
@@ -188,21 +161,21 @@ def main():
     logger.info("===== Training Finished =====")
 
     # -------------------------------------------------
-    # Save results
+    # Save results (LOCAL ONLY)
     # -------------------------------------------------
     result = {
-        "seed": args.seed,
+        "seed": seed,
         "final_mape": metrics["MAPE"],
         "final_rmspe": metrics["RMSPE"],
         "config": cfg,
     }
 
-    with open(os.path.join(args.output_dir, "metrics.json"), "w") as f:
+    with open(os.path.join(output_dir, "metrics.json"), "w") as f:
         json.dump(result, f, indent=2)
 
     torch.save(
         model.state_dict(),
-        os.path.join(args.output_dir, "model.pt"),
+        os.path.join(output_dir, "model.pt"),
     )
 
     logger.info("Results saved successfully")
