@@ -10,8 +10,6 @@ echo "CONFIG_PATH = $CONFIG_PATH"
 echo "OUTPUT_DIR  = $OUTPUT_DIR"
 echo "===================================="
 
-mkdir -p "$OUTPUT_DIR"
-
 python3 main.py \
   --config "$CONFIG_PATH" \
   --output_dir "$OUTPUT_DIR"
