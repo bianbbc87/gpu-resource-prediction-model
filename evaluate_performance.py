@@ -18,7 +18,7 @@ def evaluate_model_performance():
 
     # 학습된 모델 로드
     model = SeerNet(**config)
-    model.load_state_dict(torch.load("outputs/test/model.pt", map_location="cpu"))
+    model.load_state_dict(torch.load("outputs/optimized_test/model.pt", map_location="cpu"))
     model.eval()
     print("✓ Loaded trained model from outputs/test/model.pt")
 
@@ -258,7 +258,7 @@ The PerfSeer model achieved **{mape:.2f}% MAPE** on the evaluation dataset. This
     full_report = markdown_content + prediction_analysis
     
     # 파일 저장
-    output_path = "outputs/test/comprehensive_evaluation.md"
+    output_path = "outputs/optimized_test/comprehensive_evaluation.md"
     with open(output_path, "w") as f:
         f.write(full_report)
     

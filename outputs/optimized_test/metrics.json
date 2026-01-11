@@ -1,0 +1,28 @@
+{
+  "seed": 42,
+  "final_mape": 1.4560678769752384,
+  "final_rmspe": 1.4560678769752384,
+  "config": {
+    "model": {
+      "node_dim": 30,
+      "edge_dim": 5,
+      "global_dim": 18,
+      "hidden_dim": 256,
+      "global_node_dim": 256
+    },
+    "train": {
+      "epochs": 10,
+      "lr": 1e-06,
+      "loss": "mse",
+      "batch_size": 16
+    },
+    "dataset": {
+      "graph_dir": "data/graphs",
+      "label_dir": "data/labels",
+      "max_samples": 10000
+    },
+    "device": {
+      "device": "cpu"
+    }
+  }
+}
