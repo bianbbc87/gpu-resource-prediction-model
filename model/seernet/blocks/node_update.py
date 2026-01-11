@@ -13,6 +13,7 @@ class NodeUpdate(nn.Module):
         super().__init__()
         self.mlp = nn.Sequential(
             nn.Linear(edge_hidden_dim + node_dim + global_node_dim + global_dim, hidden_dim),
+            nn.LayerNorm(hidden_dim),  # 층별 정규화: 노드 출력값들이 일정한 범위 내에 머물도록 관리해주는 반장 역할
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
         )

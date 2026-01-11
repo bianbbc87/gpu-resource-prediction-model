@@ -13,6 +13,7 @@ class EdgeUpdate(nn.Module):
         super().__init__()
         self.mlp = nn.Sequential(
             nn.Linear(edge_dim + 2 * node_dim, hidden_dim),
+            nn.LayerNorm(hidden_dim),  # 수치 안정성 확보: 층 통과 시 결과값이 널뛰지 않게 평균/분산을 조정해주는 안전 밸브
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
         )

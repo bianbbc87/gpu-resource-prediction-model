@@ -13,6 +13,7 @@ class GlobalUpdate(nn.Module):
         super().__init__()
         self.mlp = nn.Sequential(
             nn.Linear(node_hidden_dim + global_node_dim + global_dim, hidden_dim),
+            nn.LayerNorm(hidden_dim),  # 수치 밸런스 조정: 폭발적인 그래디언트 현상을 방지하여 학습 중단을 차단
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
         )

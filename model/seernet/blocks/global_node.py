@@ -14,6 +14,7 @@ class GlobalNode(nn.Module):
         super().__init__()
         self.mlp = nn.Sequential(
             nn.Linear(node_hidden_dim, global_node_dim),
+            nn.LayerNorm(global_node_dim),  # 안정적 학습 지원: 수치가 널뛰는 현상을 막아 학습 성능을 일정하게 유지
             nn.ReLU(),
             nn.Linear(global_node_dim, global_node_dim),
         )
