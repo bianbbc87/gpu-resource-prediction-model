@@ -27,5 +27,5 @@ class NodeUpdate(nn.Module):
         N = V.size(0)
         z_expand = z.unsqueeze(0).expand(N, -1)
         u_expand = u.unsqueeze(0).expand(N, -1)
-        x = torch.cat([edge_agg, V + z_expand, u_expand], dim=-1)
+        x = torch.cat([edge_agg, V, z_expand, u_expand], dim=-1)
         return self.mlp(x)

@@ -111,13 +111,22 @@ def main():
     )
 
     # -------------------------------------------------
-    # Model
+    # Model (auto-detect dimensions from data)
     # -------------------------------------------------
     logger.info("===== Start Modeling =====")
+    
+    # Get first sample to detect dimensions
+    sample_perfgraph, _ = dataset[0]
+    node_dim = sample_perfgraph.V.shape[1]
+    edge_dim = sample_perfgraph.E.shape[1] 
+    global_dim = sample_perfgraph.u.shape[0]
+    
+    logger.info(f"Auto-detected dimensions: node_dim={node_dim}, edge_dim={edge_dim}, global_dim={global_dim}")
+    
     model = SeerNet(
-        node_dim=model_cfg["node_dim"],
-        edge_dim=model_cfg["edge_dim"],
-        global_dim=model_cfg["global_dim"],
+        node_dim=node_dim,
+        edge_dim=edge_dim,
+        global_dim=global_dim,
         hidden_dim=model_cfg.get("hidden_dim", 256),
         global_node_dim=model_cfg.get("global_node_dim", 256),
         output_dim=1,  # execution time
@@ -135,7 +144,7 @@ def main():
     logger.info("===== Setup Optimizer / Loss =====")
     optimizer = optim.Adam(
         model.parameters(),
-        lr=train_cfg.get("lr", 1e-4),
+        lr=float(train_cfg.get("lr", 1e-4)),
     )
     
     logger.info("===== Optimizer Created =====")

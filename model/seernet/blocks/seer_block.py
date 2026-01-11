@@ -40,7 +40,7 @@ class SeerBlock(nn.Module):
         )
 
         self.global_update = GlobalUpdate(
-            node_hidden_dim=hidden_dim,
+            node_hidden_dim=2 * hidden_dim,  # mean + max concat
             global_node_dim=global_node_dim,
             global_dim=global_dim,
             hidden_dim=hidden_dim,

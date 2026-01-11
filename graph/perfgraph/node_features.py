@@ -51,3 +51,29 @@ class Feature:
         self.memory_info = MemoryInfo()
         self.flops = INT_INIT
         self.arith_intensity = INT_INIT
+        
+        # Additional attributes that might be set later
+        self.flops_ratio = 0.0
+        self.mac_ratio = 0.0
+        self.weight_ratio = 0.0
+    
+    def to_vector(self):
+        """Convert feature to vector representation"""
+        vector = []
+        
+        # Add args features
+        vector.extend(self.args.to_list())
+        
+        # Add memory info features
+        vector.extend(self.memory_info.to_list())
+        
+        # Add scalar features
+        vector.extend([
+            self.flops,
+            self.arith_intensity,
+            getattr(self, 'flops_ratio', 0.0),
+            getattr(self, 'mac_ratio', 0.0),
+            getattr(self, 'weight_ratio', 0.0)
+        ])
+        
+        return vector
