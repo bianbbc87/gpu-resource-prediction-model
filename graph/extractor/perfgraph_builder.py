@@ -69,6 +69,17 @@ class PerfGraphBuilder:
         edge_index = torch.tensor(edge_index, dtype=torch.long).T
         u = torch.tensor(u, dtype=torch.float)
 
+        # 6. 수치 안정성을 위한 로그 정규화 (log1p)
+        # - 거대 피처(조 단위 FLOPs, 메모리 바이트)를 십 단위로 압축하여 모델 폭주를 방지합니다.
+        # - 0인 데이터도 log(1+0)=0으로 안전하게 처리하며 수치적 안정성을 제공합니다.
+        V[:, 23:40] = torch.log1p(V[:, 23:40]) 
+        
+        # E: 텐서 크기(0번 인덱스) 정규화
+        E[:, 0] = torch.log1p(E[:, 0])
+        
+        # u: FLOPs, 메모리 통계 등 주요 지표 정규화
+        u[3:16] = torch.log1p(u[3:16])
+
         return PerfGraph(
             u=u,
             V=V,
