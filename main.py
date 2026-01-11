@@ -100,6 +100,7 @@ def main():
     dataset = PerfGraphDataset(
         graph_dir=data_cfg["graph_dir"],
         label_dir=data_cfg["label_dir"],
+        max_samples=data_cfg.get("max_samples", None),
     )
 
     logger.info("After Dataset init")
@@ -180,9 +181,13 @@ def main():
         epoch_loss = 0.0
         logger.info(f"--- Epoch {epoch:03d} ---")
 
-        for perfgraph, label in dataloader:
+        for batch_idx, (perfgraph, label) in enumerate(dataloader, 1):
             loss = trainer.train_step(perfgraph, label)
             epoch_loss += loss
+            
+            # 배치별 로그 (100배치마다)
+            if batch_idx % 100 == 0 or batch_idx == len(dataloader):
+                logger.info(f"Batch {batch_idx}/{len(dataloader)}, Loss: {loss:.6f}")
 
         avg_loss = epoch_loss / len(dataloader)
         metrics = evaluator.evaluate(dataloader)

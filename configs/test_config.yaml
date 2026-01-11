@@ -6,15 +6,15 @@ model:
   global_node_dim: 256
 
 train:
-  epochs: 1
-  lr: 0.0001
+  epochs: 5
+  lr: 0.00001  # 10배 감소
   loss: mse
-  batch_size: 1
+  batch_size: 16  # 더 큰 배치
 
 dataset:
   graph_dir: data/graphs
   label_dir: data/labels
-  max_samples: 10  # 처음 10개만 테스트
+  max_samples: 10000 # 10000개만 테스트
 
 device:
   device: cpu

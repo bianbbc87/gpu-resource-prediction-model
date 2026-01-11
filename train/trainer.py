@@ -39,10 +39,7 @@ class Trainer:
         if isinstance(output, dict):
             losses = []
             for k, pred in output.items():
-                target = torch.tensor(
-                    float(label["train"].split("|")[0]),
-                    device=self.device,
-                )
+                target = label.to(self.device)  # Use normalized label
                 losses.append(self.loss_fn(pred.squeeze(), target))
 
             if self.pcgrad:
@@ -51,10 +48,8 @@ class Trainer:
 
             loss = sum(losses)
         else:
-            target = torch.tensor(
-                float(label["train"].split("|")[0]),
-                device=self.device,
-            )
+            # label is already normalized tensor from dataset
+            target = label.to(self.device)
             loss = self.loss_fn(output.squeeze(), target)
 
         self.optimizer.zero_grad()

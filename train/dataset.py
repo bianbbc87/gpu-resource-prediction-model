@@ -2,6 +2,7 @@
 
 import os
 import logging
+import torch
 from torch.utils.data import Dataset
 from graph.extractor import load_compute_graph, PerfGraphBuilder
 from google.cloud import storage
@@ -12,7 +13,7 @@ class PerfGraphDataset(Dataset):
     Dataset of (PerfGraph, label)
     """
 
-    def __init__(self, graph_dir, label_dir):
+    def __init__(self, graph_dir, label_dir, max_samples=None):
         self.graph_dir = graph_dir
         self.label_dir = label_dir
         
@@ -30,6 +31,11 @@ class PerfGraphDataset(Dataset):
             logging.info(f">>> Found {len(self.graph_files)} graph files")
         else:
             self.graph_files = sorted(os.listdir(graph_dir))
+            
+        # Limit samples if specified
+        if max_samples is not None:
+            self.graph_files = self.graph_files[:max_samples]
+            logging.info(f">>> Limited to {len(self.graph_files)} samples")
             
         self.builder = PerfGraphBuilder()
 
@@ -78,4 +84,12 @@ class PerfGraphDataset(Dataset):
                 label_dict = eval(f.read())
 
         perfgraph = self.builder.build(nx_graph)
-        return perfgraph, label_dict
+        
+        # Extract training time and normalize
+        train_label = label_dict["train"]
+        train_time = float(train_label.split("|")[0])  # Extract time in ms
+        
+        # Log normalization to handle large scale differences
+        normalized_label = torch.log(torch.tensor(train_time + 1e-6))
+        
+        return perfgraph, normalized_label

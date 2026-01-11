@@ -28,10 +28,8 @@ class Evaluator:
 
             pred = self.model(perfgraph).squeeze()
 
-            target = torch.tensor(
-                float(label["infer"].split("|")[0]),
-                device=self.device,
-            )
+            # Use normalized label tensor directly
+            target = label.to(self.device)
 
             mape_list.append(mape(pred, target).item())
             rmspe_list.append(rmspe(pred, target).item())
