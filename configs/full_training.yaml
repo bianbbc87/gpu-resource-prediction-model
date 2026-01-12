@@ -1,0 +1,20 @@
+model:
+  node_dim: 30
+  edge_dim: 5
+  global_dim: 18
+  hidden_dim: 256
+  global_node_dim: 256
+
+train:
+  epochs: 50         # 전체 데이터셋에 대해 충분히 학습
+  lr: 0.00005        # 5e-5: 정규화 수정 및 LayerNorm 적용으로 안정성이 확보되었으므로 학습 속도를 높임
+  loss: mse
+  batch_size: 32     # GPU 메모리를 고려하여 크기 조정
+
+dataset:
+  graph_dir: data/graphs
+  label_dir: data/labels
+  max_samples: null  # 전체 53,000개 데이터 사용
+
+device:
+  device: cuda       # GPU(T4 등) 사용 설정
