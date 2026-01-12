@@ -16,11 +16,16 @@ def evaluate_model_performance():
         'global_node_dim': 256
     }
 
-    # 학습된 모델 로드
+    # 학습된 모델 로드 (GCP 서버의 전체 학습 경로 사용)
     model = SeerNet(**config)
-    model.load_state_dict(torch.load("outputs/optimized_test/model.pt", map_location="cpu"))
+    model_path = "outputs/full_training/model.pt"
+    if not os.path.exists(model_path):
+        # 만약 전체 학습 경로가 없다면 최적화 테스트 경로 시도
+        model_path = "outputs/optimized_test/model.pt"
+    
+    model.load_state_dict(torch.load(model_path, map_location="cpu"))
     model.eval()
-    print("✓ Loaded trained model from outputs/test/model.pt")
+    print(f"✓ Loaded trained model from {model_path}")
 
     # 데이터 로드
     data_dir = "data/graphs"
@@ -67,9 +72,14 @@ def evaluate_model_performance():
             infer_metrics = infer_label.split("|")
             
             # 그래프에서 FLOPs, MAC, Params 계산 (추정)
-            total_flops = sum([node_data.get('flops', 0) for _, node_data in nx_graph.nodes(data=True) if 'feature' in node_data])
-            total_params = sum([node_data['feature'].get('memory_info', {}).get('weight_size', 0) for _, node_data in nx_graph.nodes(data=True) if 'feature' in node_data])
-            total_mac = sum([node_data['feature'].get('memory_info', {}).get('bytes', 0) for _, node_data in nx_graph.nodes(data=True) if 'feature' in node_data])
+            total_flops = 0
+            total_params = 0
+            total_mac = 0
+            for _, node_data in nx_graph.nodes(data=True):
+                feature = node_data.get('feature', {})
+                total_flops += feature.get('flops', 0)
+                total_params += feature.get('memory_info', {}).get('weight_size', 0)
+                total_mac += feature.get('memory_info', {}).get('bytes', 0)
             
             flops_list.append(total_flops / 1e9)  # Convert to G
             mac_list.append(total_mac / 1e9)      # Convert to GBytes  
@@ -257,8 +267,10 @@ The PerfSeer model achieved **{mape:.2f}% MAPE** on the evaluation dataset. This
     # 통합 리포트 생성
     full_report = markdown_content + prediction_analysis
     
-    # 파일 저장
-    output_path = "outputs/optimized_test/comprehensive_evaluation.md"
+    # 파일 저장 (학습 중인 경로에 맞춰 저장)
+    output_dir = os.path.dirname(model_path)
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, "comprehensive_evaluation.md")
     with open(output_path, "w") as f:
         f.write(full_report)
     
