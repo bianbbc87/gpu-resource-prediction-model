@@ -198,6 +198,13 @@ def main():
             f"MAPE={metrics['MAPE']:.4f} | "
             f"RMSPE={metrics['RMSPE']:.4f}"
         )
+        
+        # 에포크마다 모델 저장하여 중간 과정 확인 가능하도록 함
+        torch.save(
+            model.state_dict(),
+            os.path.join(output_dir, "model.pt")
+        )
+        logger.info(f"Checkpoint saved: {os.path.join(output_dir, 'model.pt')}")
 
     logger.info("===== Training Finished =====")
 
